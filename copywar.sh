@@ -1,11 +1,11 @@
 co  #!/bin/bash
 
-## 変数設定 ###########################################
+## 変数設定 ###############################################
 # もとのwarファイルの名前
 originalWarName=examples
 
 # 作成するwarファイルの名前
-targetWarName=examples5
+targetWarName=examples3
 
 # 接続するDBの情報(MySQL)
 dbUser=root
@@ -20,24 +20,26 @@ proxyConfFile=/etc/httpd/conf.d/proxy.conf
 # tomcatのwebappsディレクトリ
 webapps=/opt/tomcat/webapps
 
+## 関数 ##################################################
+function sayDone() {
+    echo -e "done!\n"
+}
 
-## war作成処理 ###########################################
-## warファイル名を設定
+## 処理実行 ##############################################
 echo "warファイルの名前を設定"
 originalWarFile=${originalWarName}.war
 targetWarFile=${targetWarName}.war
 echo "元ファイル：${originalWarFile}"
-echo "作成ファイル：${targetWarName}"
+echo "作成ファイル：${targetWarFile}"
+echo ""
 
-## MySQL
 echo "STEP1/4 create schema and insert data into MySQL"
 # スキーマを作成・データ流入
 mysql -u ${dbUser} -p${dbPass} -P ${dbPortNumber} -h ${dbHostName} -e "create database if not exists ${schemaName};" 
-echo "done!\n"
+sayDone
 
-## warファイル
-# ワーキングディレクトリでwarファイルを展開
 echo "STEP2/4 make customized WAR"
+# ワーキングディレクトリでwarファイルを展開
 mkdir work
 cp ${originalWarFile} work/
 cd work
@@ -52,15 +54,13 @@ jar cf ../${targetWarFile} .
 cd ../
 rm -rf work
 chown tomcat:tomcat ${targetWarFile}
-echo "done!\n"
+sayDone
 
-## Tomcat
 echo "STEP3/4 deploy WAR file to Tomcat"
 # デプロイ
-mv ${targetWarFile} ${webapps}
-echo "done!\n"
+mv -f ${targetWarFile} ${webapps}
+sayDone
 
-## Apache
 echo "STEP4/4 set reverse proxy (Apache httpd)"
 # リバースプロキシの情報設定
 echo "ProxyPass /${targetWarName} ajp://localhost:8009/${targetWarName}" >> ${proxyConfFile}
@@ -69,6 +69,6 @@ echo "" >> ${proxyConfFile}
 
 # httpdを再起動
 systemctl restart httpd
+sayDone
 
-echo "done!\n"
-echo "complete!!\n\n"
+echo -e "complete!!\n"
