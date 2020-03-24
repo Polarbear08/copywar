@@ -5,7 +5,7 @@ co  #!/bin/bash
 originalWarName=examples
 
 # 作成するwarファイルの名前
-targetWarName=examples4
+targetWarName=examples5
 
 # 接続するDBの情報(MySQL)
 dbUser=root
